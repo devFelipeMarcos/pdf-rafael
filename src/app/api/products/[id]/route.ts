@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 // GET /api/products/[id] - Buscar produto por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const product = await prisma.product.findUnique({
       where: { id },
@@ -33,10 +33,10 @@ export async function GET(
 // PUT /api/products/[id] - Atualizar produto
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { name, description, price, imageUri, active } = body
 
@@ -80,7 +80,7 @@ export async function PUT(
     }
 
     // Preparar dados para atualização
-    const updateData: any = {}
+    const updateData: { name?: string; description?: string | null; price?: number; imageUri?: string | null; active?: boolean } = {}
     if (name) updateData.name = name
     if (description !== undefined) updateData.description = description
     if (price !== undefined) updateData.price = parseFloat(price)
@@ -106,10 +106,10 @@ export async function PUT(
 // DELETE /api/products/[id] - Deletar produto
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar se o produto existe
     const existingProduct = await prisma.product.findUnique({

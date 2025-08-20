@@ -8,9 +8,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const userId = searchParams.get('userId')
 
-    const whereClause: any = {}
+    const whereClause: { status?: 'OPEN' | 'CLOSED'; userId?: string } = {}
     if (status) {
-      whereClause.status = status.toUpperCase()
+      whereClause.status = status.toUpperCase() as 'OPEN' | 'CLOSED'
     }
     if (userId) {
       whereClause.userId = userId

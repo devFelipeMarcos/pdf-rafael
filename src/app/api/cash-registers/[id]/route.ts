@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 // GET /api/cash-registers/[id] - Buscar caixa registradora por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const cashRegister = await prisma.cashRegister.findUnique({
       where: { id },
@@ -55,10 +55,10 @@ export async function GET(
 // PUT /api/cash-registers/[id] - Atualizar caixa registradora
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { status, finalAmount, currentAmount } = body
 
@@ -75,7 +75,7 @@ export async function PUT(
     }
 
     // Preparar dados para atualização
-    const updateData: any = {}
+    const updateData: { status?: 'OPEN' | 'CLOSED'; currentAmount?: number; finalAmount?: number } = {}
     
     if (status) {
       if (!['OPEN', 'CLOSED'].includes(status.toUpperCase())) {
@@ -84,7 +84,7 @@ export async function PUT(
           { status: 400 }
         )
       }
-      updateData.status = status.toUpperCase()
+      updateData.status = status.toUpperCase() as 'OPEN' | 'CLOSED'
     }
 
     if (currentAmount !== undefined) {
@@ -109,7 +109,7 @@ export async function PUT(
 
     // Se está fechando a caixa, definir valor final se não fornecido
     if (status === 'CLOSED' && finalAmount === undefined) {
-      updateData.finalAmount = existingCashRegister.currentAmount
+      updateData.finalAmount = existingCashRegister.currentAmount.toNumber()
     }
 
     // Atualizar caixa registradora
@@ -140,10 +140,10 @@ export async function PUT(
 // DELETE /api/cash-registers/[id] - Deletar caixa registradora
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar se a caixa registradora existe
     const existingCashRegister = await prisma.cashRegister.findUnique({

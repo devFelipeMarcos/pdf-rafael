@@ -12,10 +12,10 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
 
-    const whereClause: any = {}
+    const whereClause: { status?: 'PENDING' | 'COMPLETED' | 'CANCELLED'; userId?: string; cashRegisterId?: string; paymentMethod?: 'CASH' | 'CARD' | 'PIX'; createdAt?: { gte?: Date; lte?: Date } } = {}
     
     if (status) {
-      whereClause.status = status.toUpperCase()
+      whereClause.status = status.toUpperCase() as 'PENDING' | 'COMPLETED' | 'CANCELLED'
     }
     if (userId) {
       whereClause.userId = userId
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       whereClause.cashRegisterId = cashRegisterId
     }
     if (paymentMethod) {
-      whereClause.paymentMethod = paymentMethod.toUpperCase()
+      whereClause.paymentMethod = paymentMethod.toUpperCase() as 'CASH' | 'CARD' | 'PIX'
     }
     if (startDate || endDate) {
       whereClause.createdAt = {}

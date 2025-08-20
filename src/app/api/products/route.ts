@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const active = searchParams.get('active')
 
-    const whereClause: any = {}
+    const whereClause: { active?: boolean } = {}
     if (active !== null) {
       whereClause.active = active === 'true'
     }

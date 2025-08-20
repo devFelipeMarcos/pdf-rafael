@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma'
 // GET /api/sales/[id] - Buscar venda por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const sale = await prisma.sale.findUnique({
       where: { id },
@@ -51,10 +51,10 @@ export async function GET(
 // PUT /api/sales/[id] - Atualizar venda
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { items, total, paymentMethod, status } = body
 
@@ -82,7 +82,7 @@ export async function PUT(
     }
 
     // Preparar dados para atualização
-    const updateData: any = {}
+    const updateData: { items?: { productId: string; quantity: number; price: number }[]; total?: number; paymentMethod?: 'CASH' | 'CARD' | 'PIX'; status?: 'PENDING' | 'COMPLETED' | 'CANCELLED' } = {}
     let totalDifference = 0
 
     if (items !== undefined) {
@@ -143,7 +143,7 @@ export async function PUT(
           { status: 400 }
         )
       }
-      updateData.paymentMethod = paymentMethod.toUpperCase()
+      updateData.paymentMethod = paymentMethod.toUpperCase() as 'CASH' | 'CARD' | 'PIX'
     }
 
     if (status !== undefined) {
@@ -167,7 +167,7 @@ export async function PUT(
         totalDifference = saleTotal
       }
       
-      updateData.status = newStatus
+      updateData.status = newStatus as 'PENDING' | 'COMPLETED' | 'CANCELLED'
     }
 
     // Atualizar venda e caixa em transação
@@ -222,10 +222,10 @@ export async function PUT(
 // DELETE /api/sales/[id] - Deletar venda
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar se a venda existe
     const existingSale = await prisma.sale.findUnique({

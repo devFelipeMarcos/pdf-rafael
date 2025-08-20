@@ -5,10 +5,10 @@ import bcrypt from 'bcryptjs'
 // GET /api/users/[id] - Buscar usuário por ID
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     const user = await prisma.user.findUnique({
       where: { id },
@@ -43,10 +43,10 @@ export async function GET(
 // PUT /api/users/[id] - Atualizar usuário
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { email, name, password, role, active } = body
 
@@ -77,10 +77,10 @@ export async function PUT(
     }
 
     // Preparar dados para atualização
-    const updateData: any = {}
+    const updateData: { email?: string; name?: string; role?: 'ADMIN' | 'USER'; active?: boolean; password?: string } = {}
     if (email) updateData.email = email
     if (name) updateData.name = name
-    if (role) updateData.role = role
+    if (role) updateData.role = role.toUpperCase() as 'ADMIN' | 'USER'
     if (typeof active === 'boolean') updateData.active = active
     if (password) {
       updateData.password = await bcrypt.hash(password, 10)
@@ -114,10 +114,10 @@ export async function PUT(
 // DELETE /api/users/[id] - Deletar usuário
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id } = await params
 
     // Verificar se o usuário existe
     const existingUser = await prisma.user.findUnique({
