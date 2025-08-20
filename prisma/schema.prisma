@@ -1,0 +1,112 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela de usuários
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(USER)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  cashRegisters CashRegister[]
+  sales         Sale[]
+
+  @@map("users")
+  @@index([email])
+}
+
+// Tabela de produtos
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  imageUri    String?  @map("image_uri")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+// Tabela de caixas
+model CashRegister {
+  id            String            @id @default(uuid())
+  userId        String            @map("user_id")
+  status        CashRegisterStatus @default(OPEN)
+  initialAmount Decimal           @default(0) @map("initial_amount") @db.Decimal(10, 2)
+  currentAmount Decimal           @default(0) @map("current_amount") @db.Decimal(10, 2)
+  finalAmount   Decimal?          @map("final_amount") @db.Decimal(10, 2)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  user  User   @relation(fields: [userId], references: [id])
+  sales Sale[]
+
+  @@map("cash_registers")
+  @@index([userId])
+  @@index([status])
+}
+
+// Tabela de vendas
+model Sale {
+  id             String        @id @default(uuid())
+  cashRegisterId String        @map("cash_register_id")
+  userId         String        @map("user_id")
+  items          Json
+  total          Decimal       @db.Decimal(10, 2)
+  paymentMethod  PaymentMethod @map("payment_method")
+  status         SaleStatus    @default(COMPLETED)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  cashRegister CashRegister @relation(fields: [cashRegisterId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@map("sales")
+  @@index([cashRegisterId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Enums
+enum Role {
+  ADMIN @map("admin")
+  USER  @map("user")
+}
+
+enum CashRegisterStatus {
+  OPEN   @map("open")
+  CLOSED @map("closed")
+}
+
+enum PaymentMethod {
+  CASH @map("cash")
+  CARD @map("card")
+  PIX  @map("pix")
+}
+
+enum SaleStatus {
+  PENDING   @map("pending")
+  COMPLETED @map("completed")
+  CANCELLED @map("cancelled")
+}
